@@ -277,10 +277,10 @@ void comunicacao(int connectionFD, char *ip)
 			sprintf(tmpstr, "%d", connectionFD);
 			socketLOG("A", 3, tmpstr, ip);
         }
-	
+
 		if (opt[0] == '0') // conexao com o cliente encerrada corretamente
 			break;
-        
+
         if(opt[0] == '1' || opt[0] == '2')
         {
             // recebe informacao a ser filtrada
@@ -291,23 +291,23 @@ void comunicacao(int connectionFD, char *ip)
             // verifica quebra de conexao
             if(resp == -1)
                 continue;
-	
+
 			NoPerfilEmailNome *lista = newNPENList(); // aloca lista
 			infoLOG(opt, 2, buffer, ip); 		  // [log do servidor]
-			
+
             if(opt[0] == '1') // lista dos perfis reduzidos que possuem a formacao requisitada
 				lista = listarPorFormacao(buffer);
             else if(opt[0] == '2') // lista dos perfis reduzidos que possuem a habilidade requisitada
 				lista = listarPorHabilidade(buffer);
-	
+
 			// envia tamanho da lista
 			char str[12];
 			sprintf(str, "%d", NPENListLen(lista));
 			write(connectionFD, str, 12);
-	
+
 			resp = NPENenviaTodos(connectionFD,lista); // envia lista
 			NPENListFree(lista);                       // libera memoria alocada
-			
+
 			infoLOG(opt, resp, buffer, ip); // [log do servidor]
         }
         else if(opt[0] == '3')
@@ -320,10 +320,10 @@ void comunicacao(int connectionFD, char *ip)
             // verifica quebra de conexao
             if(resp == -1)
                 continue;
-            
+
             NoPerfilEmailNomeCurso *lista = listarPorAno(ano); // encontra lista dos perfis reduzidos que formaram no ano requisitado
 			infoLOG(opt, 2, str, ip); 				   // [log do servidor]
-			
+
             // envia tamanho da lista
             int tam = NPENCListLen(lista);
             sprintf(str, "%d", tam);
@@ -331,7 +331,7 @@ void comunicacao(int connectionFD, char *ip)
 
             NPENCenviaTodos(connectionFD,lista); // envia lista
             NPENCListFree(lista);                // libera memoria alocada
-            
+
 			infoLOG(opt, resp, str, ip); // [log do servidor]
         }
         else if(opt[0] == '4')
@@ -349,9 +349,9 @@ void comunicacao(int connectionFD, char *ip)
             // verifica quebra de conexao
             if(resp == -1)
                 continue;
-	
+
 			infoLOG(opt,2,buffer,ip); // [log do servidor]
-            
+
             NoPerfil *listaGeral = listarTodos(); 		    // cria lista com todos os cadastros
             Perfil *p = encontrarPerfil(buffer,listaGeral); // procura perfil a partir do email
 
@@ -381,16 +381,16 @@ void comunicacao(int connectionFD, char *ip)
 				infoLOG(opt,0,"",ip); // [log do servidor]
                 continue;
             }
-	
+
 			infoLOG(opt,2,"",ip);
             int res = addPerfil(p);  // tenta inserir o perfil ao registro
-	
+
 			// [log do servidor]
             if(!res)
 				infoLOG(opt,3,p->email,ip);
             else
 				infoLOG(opt,1,p->email,ip);
-            
+
             write(connectionFD, &res, 1); // envia resultado da insercao ao cliente
         }
         else if(opt[0] == '7' || opt[0] == '8')
@@ -399,24 +399,24 @@ void comunicacao(int connectionFD, char *ip)
 			char buffer[200];
 			memset(buffer,'\0',200);
 			resp = (int)read(connectionFD, buffer, 200);
-			
+
 			if(resp == -1)
 				continue;
-			
+
 			int res;
 			infoLOG(opt,2,buffer,ip); // [log do servidor]
-			
+
 			if(opt[0] == '7')
 			{
 				// recebe experiencia
 				char buffer2[200];
 				memset(buffer2,'\0',200);
 				resp = (int)read(connectionFD, buffer2, 200);
-				
+
 				if(resp != -1)
 				{
 					res = addExperiencia(buffer,buffer2); // tenta adicionar experiencia
-					
+
 					if(res == '2')
 						infoLOG(opt,1,buffer,ip); // [log do servidor]
 					else if(res == '1')
@@ -430,7 +430,7 @@ void comunicacao(int connectionFD, char *ip)
 				res = removerPerfil(buffer); // tenta remover perfil do registro
 				infoLOG(opt,res,buffer,ip);  // [log do servidor]
 			}
-			
+
 			write(connectionFD, &res, 1); // envia resultado ao cliente
         }
     }
@@ -456,7 +456,7 @@ int getServerInfo(char *ip) // le arquivo de configuracao do servidor
 	FILE *config = fopen(CONFIG,"r");
 	int port = 9000;
 	char str[12];
-	
+
 	if(config != NULL)
 	{
 		fscanf(config,"%s",ip);
@@ -472,38 +472,37 @@ int main()
 {
 	// apenas para ver o ip da maquina (servidor)
 	getServerIP();
-	
+
 	// le ip e porta definidos no arquivo de configuracao
 	char ip[16] = "0.0.0.0";        // valor (default)
 	int port = getServerInfo(ip);   // valor default é 9000
-	
+
 	int socketFD = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP); // cria file descriptor do socket TCP
 	SockAddr_in server;												   // estrutura do socket
 	socketLOG("SBL", socketFD, "socket ", ""); 		   // verifica criação do socket
-	
+
 	/* atribui valores à estrutura do socket */
 	server.sin_family = AF_INET;            // AF_INET é a familia de protocolos do IPV4
 	server.sin_addr.s_addr = inet_addr(ip); // 0.0.0.0 (qualquer ip na rede pode enviar ao servidor)
 	server.sin_port = htons(port);          // porta do servidor
-	
+
 	int do_bind = bind(socketFD, (SockAddr*)&server, sizeof(server)); // vincula um nome ao socket
 	socketLOG("SBL", do_bind, "bind   ", ""); 			  // verifica bind
-	
+
 	int do_listen = listen(socketFD, 5); 					// coloca socket à espera de uma conexão
 	socketLOG("SBL", do_listen, "listen ", "");	// verifica listen
-	
+
 	int pid, connectionFD; // process id e fd da conexao
 	SockAddr_in client;    // estrutura do socket
-	
+
     for(;;)
     {
-		/* aceita cliente */
+		    /* aceita cliente */
         int tam = sizeof(client);
         connectionFD = accept(socketFD, (SockAddr*)&client, &tam); // aceita conexão de um cliente
-	
-		/* separa em dois processos */
-        //pid = fork();
-        pid = 0;
+
+		    /* separa em dois processos */
+        pid = fork();
         if(pid==0)
         {
 			/* verifica accept */
