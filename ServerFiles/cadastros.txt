@@ -1,0 +1,29 @@
+maria_silva@gmail.com
+Maria
+Silva
+Campinas
+Ciência da Computação
+2015
++=====+
+Análise de Dados
+Internet das Coisas
+Computação em Nuvem
++=====+
+Estágio de 1 ano na Empresa X, onde trabalhei como analista de dados
+Trabalhei com IoT e Computação em Nuvem por 5 anos na Empresa Y
++=====+
+jose_silva@gmail.com
+Jose
+Silva
+Campinas
+Engenharia da Computação
+2005
++=====+
+Machine Learning
+Photoshop
++=====+
+Estágio de 6 meses na Empresa X, onde trabalhei como web dev
+Trabalhei com IA na intel, por 3 anos
+Trabalhei com IA na amazon, por 2 anos
+Trabalho com IA na google, ate o momento presente
++=====+
