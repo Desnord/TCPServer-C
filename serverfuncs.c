@@ -36,7 +36,7 @@ void atualizaArquivo(NoPerfil *lista)
         for(NoString *strAT = p->experiencia->prox; strAT != NULL; strAT = strAT->prox)
             fprintf(cadastros,"%s\n",strAT->str);
 		fputs(SPECCHAR,cadastros);
-		
+
 		if(at->prox != NULL)
 			fputs("\n",cadastros);
     }
@@ -55,11 +55,11 @@ void removeBreak(char *str)
 void socketLOG(char *x, int code, char *log, char *ip)
 {
 	PRINTCL(CLW,"\u2192");
-	
+
 	if(!strcmp(x,"SBL"))
 	{
 		PRINTCL(CLW," %s ",log);
-		
+
 		if(code == -1)
 		{
 			PRINTCL(CLLR,"FAIL. \n");
@@ -106,14 +106,14 @@ void socketLOG(char *x, int code, char *log, char *ip)
 			close(connectionFD);
 			exit(0);
 		}
-		
+
 	}
 }
 void infoLOG(char *x, int code, char *log, char *ip)
 {
 	PRINTCL(CLW,"\u2192");
 	PRINTCL(CLY, " [pid: %d]", getpid());
-	
+
 	if(!strcmp(x,"OP"))
 	{
 		PRINTCL(CLLB, " [ip: %s]", ip);
@@ -137,10 +137,10 @@ void infoLOG(char *x, int code, char *log, char *ip)
 			PRINTCL(CLLP, " [ip: %s]", ip);
 			PRINTCL(CLW," listagem realizada.");
 		}
-		
+
 		char type[20];
 		memset(type,'\0',20);
-		
+
 		if(!strcmp(x,"1"))
 			strcpy(type,"curso:");
 		else if(!strcmp(x,"2"))
@@ -154,64 +154,64 @@ void infoLOG(char *x, int code, char *log, char *ip)
 	{
 		char type[20];
 		memset(type,'\0',20);
-		
-		char msg[30];
-		memset(msg,'\0',30);
-		
+
+		char msg[100];
+		memset(msg,'\0',100);
+
 		if(code == 0)
 		{
 			PRINTCL(CLLR, " [ip: %s]", ip);
-			
+
 			if(!strcmp(x,"5"))
-				strcpy(type," falha no envio.");
+				strcpy(msg," falha no envio.");
 			else if(!strcmp(x,"6"))
-				strcpy(type," falha no recebimento.");
+				strcpy(msg," falha no recebimento.");
 			else if(!strcmp(x,"7"))
-				strcpy(type," perfil não atualizado (experiencia duplicada).");
+				strcpy(msg," perfil não atualizado (experiencia duplicada).");
 			else if(!strcmp(x,"8"))
-				strcpy(type," perfil não removido.");
+				strcpy(msg," perfil não removido.");
 		}
 		else if(code == 1)
 		{
 			PRINTCL(CLLG, " [ip: %s]", ip);
-			
+
 			if(!strcmp(x,"5"))
-				strcpy(type," busca enviada ao cliente.");
+				strcpy(msg," busca enviada ao cliente.");
 			else if(!strcmp(x,"6"))
-				strcpy(type," perfil inserido.");
+				strcpy(msg," perfil inserido.");
 			else if(!strcmp(x,"7"))
-				strcpy(type, " perfil atualizado.");
+				strcpy(msg, " perfil atualizado.");
 			else if(!strcmp(x,"8"))
-				strcpy(type," perfil removido.");
+				strcpy(msg," perfil removido.");
 		}
 		else if(code == 2)
 		{
 			PRINTCL(CLLP, " [ip: %s]", ip);
-			
+
 			if(!strcmp(x,"5"))
-				strcpy(type," busca realizada.");
+				strcpy(msg," busca realizada.");
 			else if(!strcmp(x,"6"))
-				strcpy(type," inserção requisitada.");
+				strcpy(msg," inserção requisitada.");
 			else if(!strcmp(x,"7"))
-				strcpy(type, " atualização de perfil requisitada.");
+				strcpy(msg, " atualização de perfil requisitada.");
 			else if(!strcmp(x,"8"))
-				strcpy(type," remoção requisitada.");
+				strcpy(msg," remoção requisitada.");
 		}
 		else if(code == 3)
 		{
 			PRINTCL(CLLR, " [ip: %s]", ip);
-			
+
 			if(!strcmp(x,"5"))
-				strcpy(type," perfil inexistente.");
+				strcpy(msg," perfil inexistente.");
 			if(!strcmp(x,"6"))
-				strcpy(type," perfil não inserido.");
+				strcpy(msg," perfil não inserido.");
 			else if(!strcmp(x,"7"))
-				strcpy(type, "  perfil não atualizado (perfil inexistente).");
+				strcpy(msg, "  perfil não atualizado (perfil inexistente).");
 		}
-		
+
 		if(!strcmp(x,"5") || !strcmp(x,"8") || (!strcmp(x,"6") && code != 1))
 			strcpy(type,"email:");
-		
+
 		PRINTCL(CLW,"%s",msg);
 		PRINTCL(CLLP, "(%s%s)\n", type, log);
 	}
@@ -233,24 +233,24 @@ NoPerfil *listarTodos()
     while(fgets(line,200,cadastros))
     {
     	removeBreak(line);
-    	
+
     	if(!count_data && !strcmp(line,SPECCHAR))
     		break;
-    	
+
         if(count_data < 6)
         {
             // inicio da leitura de um perfil, logo aloca memoria para o perfil atual
             if(!count_data)
                 p = (Perfil*)malloc(sizeof(Perfil));
-	
+
 			char *campo;
-			
+
             if(count_data != 5) // casos em que o campo nao eh numerico, aloca memoria
             {
 				campo = malloc(sizeof(char)*(strlen(line)+1));
 				strcpy(campo,line);
             }
-	
+
 			switch (count_data) // atribui valores ao perfil
 			{
 				case 0:
@@ -294,11 +294,11 @@ NoPerfil *listarTodos()
 				{
 					// proximo perfil ==> reseta variaveis necessarias
 					count_data = 0;
-					
+
 					// guarda listas de exp. e hab. no perfil
 					p->experiencia = auxexp;
 					p->habilidades = auxhab;
-					
+
 					// insere perfil na lista
 					perfilListInsert(listaGeral,p);
 				}
@@ -307,7 +307,7 @@ NoPerfil *listarTodos()
 			{
 				char *str_at = malloc(sizeof(char) * ((int)strlen(line)+1));
 				strcpy(str_at,line);
-				
+
         		if(count_data == 7) // insere na lista de habilidades
 				{
 					stringListInsert(auxhab,str_at);
@@ -386,7 +386,7 @@ NoPerfilEmailNome *listarPorFormacao(char *form)
         {
             // aloca perfil aux
             PerfilEmailNome *penc = (PerfilEmailNome*)malloc(sizeof(PerfilEmailNome));
-            
+
             // aloca memoria para o conteudo do perfil aux
             penc->email = malloc(sizeof(char) * ((int)strlen(at->pessoa->email)+1));
             penc->nome = malloc(sizeof(char) * ((int)strlen(at->pessoa->nome)+1));
@@ -475,7 +475,7 @@ int addExperiencia(char *email, char *exp)
     NoPerfil *lista = listarTodos(); 		  // cria lista com todos os perfis
     Perfil *p = encontrarPerfil(email,lista); // acha perfil (ou nao)
     int resultado = 0; 						  // variavel de retorno
-    
+
     if(p != NULL)
     {
         // verifica se a experiencia ja existe no perfil
