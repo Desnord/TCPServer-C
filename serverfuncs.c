@@ -150,7 +150,7 @@ void infoLOG(char *x, int code, char *log, char *ip)
 
 		PRINTCL(CLLP, "(%s%s)\n", type, log);
 	}
-	else if(!strcmp(x,"5") || strcmp(x,"6") || strcmp(x,"7") || !strcmp(x,"8"))
+	else if(!strcmp(x,"5") || !strcmp(x,"6") || !strcmp(x,"7") || !strcmp(x,"8"))
 	{
 		char type[20];
 		memset(type,'\0',20);
