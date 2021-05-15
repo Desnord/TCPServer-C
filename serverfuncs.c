@@ -150,7 +150,7 @@ void infoLOG(char *x, int code, char *log, char *ip)
 
 		PRINTCL(CLLP, "(%s%s)\n", type, log);
 	}
-	else if(!strcmp(x,"5") || strcpy(x,"6") || strcpy(x,"7") || !strcmp(x,"8"))
+	else if(!strcmp(x,"5") || strcmp(x,"6") || strcmp(x,"7") || !strcmp(x,"8"))
 	{
 		char type[20];
 		memset(type,'\0',20);
@@ -167,7 +167,7 @@ void infoLOG(char *x, int code, char *log, char *ip)
 			else if(!strcmp(x,"6"))
 				strcpy(msg," falha no recebimento.");
 			else if(!strcmp(x,"7"))
-				strcpy(msg," perfil não atualizado (experiencia duplicada).");
+				strcpy(msg," perfil não atualizado (perfil inexistente).");
 			else if(!strcmp(x,"8"))
 				strcpy(msg," perfil não removido.");
 		}
@@ -203,13 +203,13 @@ void infoLOG(char *x, int code, char *log, char *ip)
 
 			if(!strcmp(x,"5"))
 				strcpy(msg," perfil inexistente.");
-			if(!strcmp(x,"6"))
+			else if(!strcmp(x,"6"))
 				strcpy(msg," perfil não inserido.");
 			else if(!strcmp(x,"7"))
-				strcpy(msg, "  perfil não atualizado (perfil inexistente).");
+				strcpy(msg, " perfil não atualizado (experiencia duplicada).");
 		}
 
-		if(!strcmp(x,"5") || !strcmp(x,"8") || (!strcmp(x,"6") && code != 1))
+		if(!strcmp(x,"5") || !strcmp(x,"8") || (!strcmp(x,"6") && code != 0))
 			strcpy(type,"email:");
 
 		PRINTCL(CLW,"%s",msg);

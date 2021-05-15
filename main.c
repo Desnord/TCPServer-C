@@ -264,175 +264,190 @@ void comunicacao(int connectionFD, char *ip)
 	char opt[20];
     for (;;)
     {
-        // le mensangem do cliente (operacao escolhida)
-		memset(opt,'\0',20);
-        int resp = (int)read(connectionFD, opt, 20); // para tratar conexao quebrada
+      // le mensangem do cliente (operacao escolhida)
+	    memset(opt,'\0',20);
+      int resp = (int)read(connectionFD, opt, 20); // para tratar conexao quebrada
 
-        // imprime número da operação a ser feita. (ou finaliza execucao do processo, se conn caiu)
-        if(resp != -1 && strlen(opt) != 0)
-            infoLOG("OP",0, opt, ip);
+      // imprime número da operação a ser feita. (ou finaliza execucao do processo, se conn caiu)
+      if(resp != -1 && strlen(opt) != 0)
+      {
+        infoLOG("OP",0, opt, ip);
+      }
+      else
+      {
+      	char tmpstr[12];
+		    sprintf(tmpstr, "%d", connectionFD);
+		    socketLOG("A", 3, tmpstr, ip);
+      }
+
+		  if (opt[0] == '0') // conexao com o cliente encerrada corretamente
+			   break;
+
+
+      if(opt[0] == '1' || opt[0] == '2')
+      {
+          // recebe informacao a ser filtrada
+          char buffer[200];
+		      memset(buffer,'\0',200);
+          resp = (int)read(connectionFD, buffer, 200);
+
+          // verifica quebra de conexao
+          if(resp == -1)
+              continue;
+
+		      NoPerfilEmailNome *lista = newNPENList(); // aloca lista
+		      infoLOG(opt, 2, buffer, ip); 		          // [log do servidor]
+
+          if(opt[0] == '1') // lista dos perfis reduzidos que possuem a formacao requisitada
+			       lista = listarPorFormacao(buffer);
+          else if(opt[0] == '2') // lista dos perfis reduzidos que possuem a habilidade requisitada
+			       lista = listarPorHabilidade(buffer);
+
+    			// envia tamanho da lista
+    			char str[12];
+    			sprintf(str, "%d", NPENListLen(lista));
+    			write(connectionFD, str, 12);
+
+    			resp = NPENenviaTodos(connectionFD,lista); // envia lista
+    			NPENListFree(lista);                       // libera memoria alocada
+
+    			infoLOG(opt, resp, buffer, ip); // [log do servidor]
+      }
+      else if(opt[0] == '3')
+      {
+          // recebe ano a ser filtrado
+          char str[12];
+          resp = (int)read(connectionFD, str, 12);
+          int ano = (int)strtol(str,NULL,10);
+
+          // verifica quebra de conexao
+          if(resp == -1)
+              continue;
+
+          NoPerfilEmailNomeCurso *lista = listarPorAno(ano); // encontra lista dos perfis reduzidos que formaram no ano requisitado
+		      infoLOG(opt, 2, str, ip); 				                 // [log do servidor]
+
+          // envia tamanho da lista
+          int tam = NPENCListLen(lista);
+          sprintf(str, "%d", tam);
+          write(connectionFD, str, 12);
+
+          NPENCenviaTodos(connectionFD,lista); // envia lista
+          NPENCListFree(lista);                // libera memoria alocada
+
+		      infoLOG(opt, resp, str, ip); // [log do servidor]
+      }
+      else if(opt[0] == '4')
+      {
+		    infoLOG(opt,2,"lista completa",ip); // [log do servidor]
+        resp = enviaTodos(connectionFD); // [envia todos os perfis
+		    infoLOG(opt,resp,"lista completa",ip); // [log do servidor]
+      }
+      else if(opt[0] == '5')
+      {
+        // recebe email a ser buscado
+        char buffer[200];
+        resp = (int)read(connectionFD, buffer, 200);
+
+        // verifica quebra de conexao
+        if(resp == -1)
+            continue;
+
+		    infoLOG(opt,2,buffer,ip); // [log do servidor]
+
+        NoPerfil *listaGeral = listarTodos(); 		    // cria lista com todos os cadastros
+        Perfil *p = encontrarPerfil(buffer,listaGeral); // procura perfil a partir do email
+
+        // envia flag da busca ao cliente
+        char existe = (p == NULL) ? '0' : '1';
+        write(connectionFD, &existe, 1);
+
+          // se o perfil existe, envia dados do perfil
+          if (p != NULL)
+          {
+            resp = enviaPerfil(connectionFD, p);
+            infoLOG(opt,resp,buffer,ip); // [log do servidor]
+          }
+          else
+			      infoLOG(opt,3,buffer,ip); // [log do servidor]
+
+          perfilListFree(listaGeral); // libera memoria alocada
+      }
+      else if(opt[0] == '6')
+      {
+          Perfil *p = recebePerfil(connectionFD); // recebe perfil do cliente
+
+          // [log do servidor]
+          if(p == NULL)
+          {
+			        infoLOG(opt,0,"",ip); // [log do servidor]
+              continue;
+          }
+
+          char email[50];
+          memset(email,'\0',50);
+          strcpy(email,p->email);
+
+		      infoLOG(opt,2,email,ip);
+          int res = addPerfil(p);  // tenta inserir o perfil ao registro
+
+		      // [log do servidor]
+          if(!res)
+			      infoLOG(opt,3,email,ip);
+          else
+			      infoLOG(opt,1,email,ip);
+
+          res = res+48;
+          write(connectionFD, &res, 1); // envia resultado da insercao ao cliente
+      }
+      else if(opt[0] == '7')
+      {
+        // recebe email
+  			char buffer[200],buffer2[200];
+        memset(buffer,'\0',200);
+  			memset(buffer2,'\0',200);
+
+  			read(connectionFD, buffer, 200);
+
+        if(resp == -1)
+          continue;
+
+        // recebe experiencia
+        resp = (int)read(connectionFD, buffer2, 200);
+
+        infoLOG(opt,2,buffer,ip); // [log do servidor]
+
+        if(resp == -1)
+  				continue;
+
+        int res = addExperiencia(buffer,buffer2); // tenta adicionar experiencia
+
+        if(res == 2)
+          infoLOG(opt,1,buffer,ip); // [log do servidor]
+        else if(res == 1)
+          infoLOG(opt,0,buffer,ip); // [log do servidor]
         else
-        {
-        	char tmpstr[12];
-			sprintf(tmpstr, "%d", connectionFD);
-			socketLOG("A", 3, tmpstr, ip);
-        }
+          infoLOG(opt,3,buffer,ip); // [log do servidor]
 
-		if (opt[0] == '0') // conexao com o cliente encerrada corretamente
-			break;
+        res = res+48;                 // transforma em char
+        write(connectionFD, &res, 1); // envia resultado ao cliente
+      }
+      else if(opt[0] == '8')
+      {
+  			// recebe email
+  			char buffer[200];
+  			memset(buffer,'\0',200);
+  			resp = (int)read(connectionFD, buffer, 200);
 
-        if(opt[0] == '1' || opt[0] == '2')
-        {
-            // recebe informacao a ser filtrada
-            char buffer[200];
-			memset(buffer,'\0',200);
-            resp = (int)read(connectionFD, buffer, 200);
+  			if(resp == -1)
+  				continue;
 
-            // verifica quebra de conexao
-            if(resp == -1)
-                continue;
-
-			NoPerfilEmailNome *lista = newNPENList(); // aloca lista
-			infoLOG(opt, 2, buffer, ip); 		  // [log do servidor]
-
-            if(opt[0] == '1') // lista dos perfis reduzidos que possuem a formacao requisitada
-				lista = listarPorFormacao(buffer);
-            else if(opt[0] == '2') // lista dos perfis reduzidos que possuem a habilidade requisitada
-				lista = listarPorHabilidade(buffer);
-
-			// envia tamanho da lista
-			char str[12];
-			sprintf(str, "%d", NPENListLen(lista));
-			write(connectionFD, str, 12);
-
-			resp = NPENenviaTodos(connectionFD,lista); // envia lista
-			NPENListFree(lista);                       // libera memoria alocada
-
-			infoLOG(opt, resp, buffer, ip); // [log do servidor]
-        }
-        else if(opt[0] == '3')
-        {
-            // recebe ano a ser filtrado
-            char str[12];
-            resp = (int)read(connectionFD, str, 12);
-            int ano = (int)strtol(str,NULL,10);
-
-            // verifica quebra de conexao
-            if(resp == -1)
-                continue;
-
-            NoPerfilEmailNomeCurso *lista = listarPorAno(ano); // encontra lista dos perfis reduzidos que formaram no ano requisitado
-			infoLOG(opt, 2, str, ip); 				   // [log do servidor]
-
-            // envia tamanho da lista
-            int tam = NPENCListLen(lista);
-            sprintf(str, "%d", tam);
-            write(connectionFD, str, 12);
-
-            NPENCenviaTodos(connectionFD,lista); // envia lista
-            NPENCListFree(lista);                // libera memoria alocada
-
-			infoLOG(opt, resp, str, ip); // [log do servidor]
-        }
-        else if(opt[0] == '4')
-        {
-			infoLOG(opt,2,"lista completa",ip); // [log do servidor]
-            resp = enviaTodos(connectionFD); // [envia todos os perfis
-			infoLOG(opt,resp,"lista completa",ip); // [log do servidor]
-        }
-        else if(opt[0] == '5')
-        {
-            // recebe email a ser buscado
-            char buffer[200];
-            resp = (int)read(connectionFD, buffer, 200);
-
-            // verifica quebra de conexao
-            if(resp == -1)
-                continue;
-
-			infoLOG(opt,2,buffer,ip); // [log do servidor]
-
-            NoPerfil *listaGeral = listarTodos(); 		    // cria lista com todos os cadastros
-            Perfil *p = encontrarPerfil(buffer,listaGeral); // procura perfil a partir do email
-
-            // envia flag da busca ao cliente
-            char existe = (p == NULL) ? '0' : '1';
-            write(connectionFD, &existe, 1);
-
-            // se o perfil existe, envia dados do perfil
-            if (p != NULL)
-            {
-                resp = enviaPerfil(connectionFD, p);
-                infoLOG(opt,resp,buffer,ip); // [log do servidor]
-
-            }
-            else
-				infoLOG(opt,3,buffer,ip); // [log do servidor]
-
-            perfilListFree(listaGeral); // libera memoria alocada
-        }
-        else if(opt[0] == '6')
-        {
-            Perfil *p = recebePerfil(connectionFD); // recebe perfil do cliente
-
-            // [log do servidor]
-            if(p == NULL)
-            {
-				infoLOG(opt,0,"",ip); // [log do servidor]
-                continue;
-            }
-
-			infoLOG(opt,2,"",ip);
-            int res = addPerfil(p);  // tenta inserir o perfil ao registro
-
-			// [log do servidor]
-            if(!res)
-				infoLOG(opt,3,p->email,ip);
-            else
-				infoLOG(opt,1,p->email,ip);
-
-            write(connectionFD, &res, 1); // envia resultado da insercao ao cliente
-        }
-        else if(opt[0] == '7' || opt[0] == '8')
-        {
-			// recebe email
-			char buffer[200];
-			memset(buffer,'\0',200);
-			resp = (int)read(connectionFD, buffer, 200);
-
-			if(resp == -1)
-				continue;
-
-			int res;
-			infoLOG(opt,2,buffer,ip); // [log do servidor]
-
-			if(opt[0] == '7')
-			{
-				// recebe experiencia
-				char buffer2[200];
-				memset(buffer2,'\0',200);
-				resp = (int)read(connectionFD, buffer2, 200);
-
-				if(resp != -1)
-				{
-					res = addExperiencia(buffer,buffer2); // tenta adicionar experiencia
-
-					if(res == '2')
-						infoLOG(opt,1,buffer,ip); // [log do servidor]
-					else if(res == '1')
-						infoLOG(opt,0,buffer,ip); // [log do servidor]
-					else
-						infoLOG(opt,3,buffer,ip); // [log do servidor]
-				}
-			}
-			else if(opt[0] == '8')
-			{
-				res = removerPerfil(buffer); // tenta remover perfil do registro
-				infoLOG(opt,res,buffer,ip);  // [log do servidor]
-			}
-
-			write(connectionFD, &res, 1); // envia resultado ao cliente
-        }
+  			infoLOG(opt,2,buffer,ip);        // [log do servidor]
+				int res = removerPerfil(buffer); // tenta remover perfil do registro
+        res = res+48;                    // transforma em char
+				infoLOG(opt,res,buffer,ip);      // [log do servidor]
+		    write(connectionFD, &res, 1);    // envia resultado ao cliente
+      }
     }
 }
 
