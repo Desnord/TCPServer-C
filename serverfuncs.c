@@ -209,8 +209,10 @@ void infoLOG(char *x, int code, char *log, char *ip)
 				strcpy(msg, " perfil não atualizado (experiencia duplicada).");
 		}
 
-		if(!strcmp(x,"5") || !strcmp(x,"8") || (!strcmp(x,"6") && code != 0))
+		if(!strcmp(x,"5") || !strcmp(x,"8") || (!strcmp(x,"6") && code != 0) || (!strcmp(x,"7") && code == 2))
 			strcpy(type,"email:");
+    else if(!strcmp(x,"7") && code != 2)
+      strcpy(type,"experiência:");
 
 		PRINTCL(CLW,"%s",msg);
 		PRINTCL(CLLP, "(%s%s)\n", type, log);

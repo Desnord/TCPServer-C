@@ -423,11 +423,11 @@ void comunicacao(int connectionFD, char *ip)
         int res = addExperiencia(buffer,buffer2); // tenta adicionar experiencia
 
         if(res == 2)
-          infoLOG(opt,1,buffer,ip); // [log do servidor]
+          infoLOG(opt,1,buffer2,ip); // [log do servidor]
         else if(res == 1)
-          infoLOG(opt,0,buffer,ip); // [log do servidor]
+          infoLOG(opt,3,buffer2,ip); // [log do servidor]
         else
-          infoLOG(opt,3,buffer,ip); // [log do servidor]
+          infoLOG(opt,0,buffer2,ip); // [log do servidor]
 
         res = res+48;                 // transforma em char
         write(connectionFD, &res, 1); // envia resultado ao cliente
@@ -444,7 +444,6 @@ void comunicacao(int connectionFD, char *ip)
 
   			infoLOG(opt,2,buffer,ip);        // [log do servidor]
 				int res = removerPerfil(buffer); // tenta remover perfil do registro
-        res = res+48;                    // transforma em char
 				infoLOG(opt,res,buffer,ip);      // [log do servidor]
 		    write(connectionFD, &res, 1);    // envia resultado ao cliente
       }
