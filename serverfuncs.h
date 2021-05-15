@@ -11,7 +11,7 @@
 #define CLY "\033[0;33m"
 
 #define CADS "ServerFiles/cadastros.txt" // arquivo de cadastros
-#define CONFIG "../ServerFiles/config.txt" // arquivo de configuracao
+#define CONFIG "ServerFiles/config.txt" // arquivo de configuracao
 
 
 // string expecial de escrita dos arquivos (para controlar a leitura e escrita corretamente)
