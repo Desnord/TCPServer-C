@@ -444,6 +444,7 @@ void comunicacao(int connectionFD, char *ip)
 
   			infoLOG(opt,2,buffer,ip);        // [log do servidor]
 				int res = removerPerfil(buffer); // tenta remover perfil do registro
+        res = res+48;                    // transforma em char
 				infoLOG(opt,res,buffer,ip);      // [log do servidor]
 		    write(connectionFD, &res, 1);    // envia resultado ao cliente
       }
